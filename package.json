@@ -1,0 +1,26 @@
+{
+  "name": "dynamodb-alarms-plugin",
+  "version": "0.1.0",
+  "main": "index.js",
+  "license": "MIT",
+  "author": "mikepatrick",
+  "description": "Serverless plugin to create read/write capacity alarms for all DynamoDB tables.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mikepatrick/dynamodb-alarms-plugin"
+  },
+  "dependencies": {
+    "lodash": "^4.17.10"
+  },
+  "keywords": [
+    "serverless",
+    "dynamodb",
+    "cloudwatch",
+    "plugin",
+    "alarm",
+    "aws"
+  ],
+  "devDependencies": {
+    "eslint": "^5.3.0"
+  }
+}
