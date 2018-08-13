@@ -63,10 +63,10 @@ class ServerlessPlugin {
             ComparisonOperator: 'GreaterThanOrEqualToThreshold',
             TreatMissingData: 'notBreaching',
             AlarmActions: [
-              { 'Fn::Join': ['', ['arn:aws:sns:' + region + ':', { Ref: 'AWS::AccountId' }, ':' + TopicName]] },
+              { 'Ref': TopicName },
             ],
             OKActions: [
-              { 'Fn::Join': ['', ['arn:aws:sns:' + region + ':', { Ref: 'AWS::AccountId' }, ':' + TopicName]] },
+              { 'Ref': TopicName },
             ],
           },
         },
