@@ -35,15 +35,24 @@ class ServerlessPlugin {
     const myResources = this.serverless.service.resources.Resources;
     const alarmConfig = this.serverless.service.custom['dynamo-alarms'];
     const { ReadCapacityPercent, WriteCapacityPercent, Period, EvaluationPeriods, TopicName } = alarmConfig;
-    const region = this.serverless.getProvider('aws').getRegion();
 
     const alarms = this.findDynamoTables(myResources).map(item => {
-      const adjustedReadCapacity = Math.floor((item.readCapacity * ReadCapacityPercent) / 100);
-      const adjustedWriteCapacity = Math.floor((item.writeCapacity * WriteCapacityPercent) / 100);
+      let adjustedReadCapacity = 0;
+      let createReadCapacity = false;
+      if (ReadCapacityPercent) {
+        createReadCapacity = true;
+        adjustedReadCapacity = Math.floor((item.readCapacity * ReadCapacityPercent) / 100);
+      }
+      let adjustedWriteCapacity = 0;
+      let createWriteCapacity = false;
+      if (WriteCapacityPercent) {
+        createWriteCapacity = true;
+        adjustedWriteCapacity = Math.floor((item.writeCapacity * WriteCapacityPercent) / 100);
+      }
 
       let alphaNumTableName = item.tableName.replace(/[^0-9a-z]/gi, '');
 
-      const capacityAlarmSnippet = {
+      let readAlarm =  (createReadCapacity && {
         [alphaNumTableName + 'ReadAlarm']: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
@@ -69,7 +78,11 @@ class ServerlessPlugin {
               { 'Ref': TopicName },
             ],
           },
-        },
+        }
+      });
+
+      
+      let writeAlarm =  (createWriteCapacity && {
         [alphaNumTableName + 'WriteAlarm']: {
           Type: 'AWS::CloudWatch::Alarm',
           Properties: {
@@ -83,8 +96,8 @@ class ServerlessPlugin {
               },
             ],
             Statistic: 'Maximum',
-            Period: 60,
-            EvaluationPeriods: 1,
+            Period: Period,
+            EvaluationPeriods: EvaluationPeriods,
             Threshold: adjustedWriteCapacity,
             ComparisonOperator: 'GreaterThanOrEqualToThreshold',
             TreatMissingData: 'notBreaching',
@@ -95,7 +108,12 @@ class ServerlessPlugin {
               { 'Ref': TopicName },
             ],
           },
-        },
+        }
+      });
+      
+      const capacityAlarmSnippet = {
+        ...readAlarm,
+        ...writeAlarm
       };
       this.serverless.cli.log(`Creating Cloudwatch alarms for DynamoDB table ${item.tableName}`);
       return capacityAlarmSnippet;
